@@ -1,0 +1,205 @@
+package com.myApplication;
+
+import java.awt.Color;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Wrapper;
+
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.border.EmptyBorder;
+
+public class Login extends JFrame implements ActionListener
+{
+
+	JFrame frame1;
+	JPanel panel1;
+	JLabel label1;
+	JLabel label2;
+	JButton blogin;
+	JButton bsignup;
+	JTextField textfield1;
+	JTextField textfield2;	
+	
+	boolean login=false;
+	String dburl="jdbc:oracle:thin:@RaGHuL-PC:1522:orcl";
+	String user="system";
+	String pass="12345";
+	private String usernameq;
+	
+	
+	Login(){
+		gui();	
+	}
+	
+	public void gui() {
+		
+		
+		frame1=new JFrame("Online Application");
+		frame1.setSize(600, 600);
+		frame1.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		
+		panel1 = new JPanel();
+		panel1.setBackground(Color.gray);
+		panel1.setLayout(null);
+		
+		JLabel label1 = new JLabel();
+		label1.setText("LOGIN");
+		label1.setBounds(250, 100, 50, 60);
+		label1.setSize(50, 20);
+		panel1.add(label1);
+		
+		
+		textfield1 = new JTextField();
+		
+		textfield1.setBounds(250, 150, 80, 20);
+		
+		panel1.add(textfield1);
+		
+		
+		textfield2 = new JTextField();
+		textfield2.setBounds(250, 200, 80, 20);
+		panel1.add(textfield2); 
+		
+		
+		
+		JLabel UserName = new JLabel("User Name");
+		UserName.setBounds(170, 156, 86, 14);
+		panel1.add(UserName);
+		JLabel Password = new JLabel("Password");
+		Password.setBounds(170, 207, 86, 14);
+		panel1.add(Password);
+		
+		
+		blogin = new JButton("Login");
+
+		blogin.setBounds(170, 251, 89, 23);
+		panel1.add(blogin);
+		frame1.add(panel1);
+		
+		
+		
+		bsignup = new JButton("signup");
+
+		bsignup.setBounds(280, 251, 89, 23);
+		panel1.add(bsignup);
+		frame1.add(panel1);
+		frame1.setVisible(true);
+
+		blogin.addActionListener(this);
+		bsignup.addActionListener(this);
+		
+		
+	}
+	@Override
+	
+        public void actionPerformed(ActionEvent e) 
+        {	
+		if(e.getSource()==blogin) {
+			DbConnectivity.main(null);	
+	        
+			Wrapper conn = null;
+			try  
+			        {
+
+			String appusername = "";
+			String apppassword = "";
+
+
+			appusername = textfield1.getText().trim();
+			apppassword = textfield2.getText().trim();
+
+			        // check condition it field equals to blank throw error message
+			if (appusername.equals("")|| apppassword.equals(""))
+			{
+			JOptionPane.showMessageDialog(null," Please Enter username and password","Error",JOptionPane.ERROR_MESSAGE);
+			}
+
+			else  //else insert query is run properly
+			{
+			if(DbConnectivity.success.equals("database_cnt_error.Proceeding in Offline Mode"))
+			login=true;
+
+			else {
+			try {
+
+			Class.forName("oracle.jdbc.driver.OracleDriver").newInstance();
+			Connection con = DriverManager.getConnection(dburl, user, pass);
+			Statement stmt = (Statement) con.createStatement();
+			String query = "SELECT username, password FROM register";
+			stmt.executeQuery(query);
+			ResultSet rs = stmt.getResultSet();
+			System.out.println("inside db");
+			while(rs.next()){
+				
+			    String db_username = rs.getString("username");
+			    String db_password = rs.getString("password");
+			   System.out.println("dbuser="+db_username);
+			   System.out.println("dbpass="+db_password);
+			    if(appusername.equals(db_username) && apppassword.equals(db_password)){			                   
+			    	System.out.println("OK");
+			        login = true;
+			    }
+			    System.out.println("COMPARING USERNAME:"+appusername +"  PASSWORD:"+ apppassword + "  WITH DB_USERNAME:" + db_username +"  DB_PASSWORD:"+ db_password);
+			}
+			} catch (InstantiationException e1) {
+			e1.printStackTrace();
+			} catch (IllegalAccessException e1) {
+			e1.printStackTrace();
+			} catch (ClassNotFoundException e1) {
+			e1.printStackTrace();
+			} catch (SQLException e1) {
+			e1.printStackTrace();
+			}
+
+			conn = DriverManager.getConnection(dburl, user, pass);
+			System.out.println("Connected database successfully...");
+			}
+			if(login == true)
+			{
+			String SMessage = "Logged in As "+appusername;
+			usernameq=appusername;
+			JOptionPane.showMessageDialog(null,SMessage,"Message",JOptionPane.PLAIN_MESSAGE);
+			//new Questions().setVisible(true);
+			dispose();
+			}
+			else
+			{
+			String SMessage = "Incorrect Password Or UserNAME";
+			JOptionPane.showMessageDialog(null,SMessage,"Message",JOptionPane.ERROR_MESSAGE);
+			}
+
+			((java.sql.Connection)conn).close();
+			}				
+			}
+			catch (SQLException se) 
+			{
+			//handle errors for JDBC
+			se.printStackTrace();
+			}
+			catch (Exception a) 
+			{
+			a.printStackTrace();
+			}
+			
+		}
+		else {
+		        new Register().setVisible(true);
+			        dispose();
+			   }
+      
+        }
+      
+	public static void main(String[]args) {
+		new Login();
+	}
+	}
